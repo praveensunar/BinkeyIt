@@ -5,6 +5,7 @@ import sendEmail from '../config/sendEmail.js'
 import dotenv from 'dotenv'
 import generatedAccessToken from '../utils/generatedAccessToken.js'
 import generatedRefreshToken from '../utils/generatedRefreshToken.js'
+import uploadImageCloudinary from '../utils/uploadimageCloudinary.js'
 dotenv.config()
 // register new user
 export async function registerUserController(request , response){
@@ -202,6 +203,49 @@ export async function logoutController(request , response){
     }catch(error){
         return response.status(500).json({
             message: error.message  || error,
+            error : true,
+            success : false
+        })
+    }
+}
+
+//upload user avatar 
+export async function uploadAvatar(request,response){
+    try{
+       const userId = request.userId // auth middleware
+
+        const image = request.file // multer middleware
+
+         
+
+        if(!image){
+             return response.status(400).json({
+            message : "image not provided",
+            error : true,
+            success : false
+        });
+        }
+         
+        
+      const upload = await uploadImageCloudinary(image)
+      const updateUsar = await UserModel.findByIdAndUpdate(userId,{
+            avatar : upload.url
+        }
+        )
+      return response.json({
+        message : "upload Profile successfully ",
+        success : true,
+        data : {
+            _id : userId,
+            avatar : upload.url
+        }
+      })
+
+    }catch(error){
+        console.log("UPLOAD AVATAR ERROR" ,error)
+
+        return response.status(500).json({
+            message : error.message || error,
             error : true,
             success : false
         })
