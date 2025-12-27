@@ -6,6 +6,10 @@ import dotenv from 'dotenv'
 import generatedAccessToken from '../utils/generatedAccessToken.js'
 import generatedRefreshToken from '../utils/generatedRefreshToken.js'
 import uploadImageCloudinary from '../utils/uploadimageCloudinary.js'
+import generatedOtp from '../utils/generatedOTP.js'
+import forgotPasswordOtpTemplate from '../utils/forgotPasswordTemplate.js'
+import { request, response } from 'express'
+import jwt from 'jsonwebtoken'
 dotenv.config()
 // register new user
 export async function registerUserController(request , response){
@@ -251,3 +255,248 @@ export async function uploadAvatar(request,response){
         })
     }
 }
+ // update user details 
+ export async function updateUserDetails(request , response){
+    try{
+        const userId = request.userId // auth middleware
+        const { name ,email,mobile,password} = request.body
+
+        let hashPassword = ""
+        if(password){
+            const salt = await bcryptjs.genSalt(10)
+            hashPassword = await bcryptjs.hash(password,salt)
+        }
+        
+        const updateUser = await UserModel.updateOne({_id : userId},{
+            ...(name && { name : name}),
+            ...(email && { email : email}),
+            ...(mobile && { mobile : mobile}),
+
+            ...(password && { password : hashPassword })
+
+        })
+        return response.json({
+            message : "Updated user Successfully",
+            error :false,
+            success : true,
+            data : updateUser
+        })
+
+    }catch(error){
+        return response.status(500).json({
+            message : error.message || error,
+            error : true,
+            success : false
+        })  
+    }
+ }
+
+ //Forgot password 
+
+ export async function forgotPasswordController( request , response){
+    try{
+        const { email } = request.body
+        const  user = await UserModel.findOne({ email })
+
+        if(!user){
+            return response.status(400).json({
+            message : "email not available",
+            error : true,
+            success : false 
+        })
+        } 
+        
+        const  otp = generatedOtp()
+        const expireTime = new Date() + 60 * 60 * 1000 // expire in 1 hr
+        const update = await UserModel.findByIdAndUpdate(user._id,{
+            forgot_passsword_otp : otp,
+            forgot_passsword_expiry : new Date(expireTime).toISOString()
+        })
+
+        await sendEmail({
+            sendTo : email,
+            subject : "forget password from Blinkeyit",
+            html : forgotPasswordOtpTemplate({
+                name : user.name,
+                otp : otp
+            })
+        })
+        return response.json({
+            message : "check your Email",
+            error : false,
+            success : true 
+        })
+    }catch(error){
+        return response.status(500).json({
+            message : error.message || error,
+            error : true,
+            success : false 
+        })
+    }
+ }
+
+ // Verify forgot password otp 
+ export async function verifyForgotPasswordOtp( request , response){
+    try{
+        const { email ,otp } = request.body
+
+        if(!email || !otp){
+            return response.status(400).json({
+                message : "Provide requied field email , otp",
+                error : true,
+                success : false
+            })
+        }
+        
+        const user = await UserModel.findOne({ email })
+
+        if(!user){
+            return response.status(400).json({
+                message : "Email not Available",
+                error : true,
+                success : false
+            })
+        }
+
+        const currentTime = new Date().toISOString()
+        if(user.forgot_passsword_expiry < currentTime){
+            return response.status(400).json({
+                message : "OTP is Expired",
+                error : true,
+                success : false
+            })
+        }
+
+        if(otp !== user.forgot_passsword_otp){
+            return response.status(400).json({
+                message : "Invaild otp",
+                error : true,
+                success : false
+            })
+        }
+
+        return response.json({
+            message : "Verify otp successfully",
+                error : false,
+                success : true
+        })
+
+
+    }catch(error){
+        return response.status(500).json({
+            message : error.message || error,
+            error : true,
+            success : false
+        })
+    }
+ }
+
+// reset password 
+
+export async function resetPassword(request ,response){
+    try{
+        console.log("BODY =>", request.body);
+        const { email , newPassword ,confirmPassword } = request.body
+         
+        if(!email || !newPassword || !confirmPassword){
+            return response.status(400).json({
+                message : " provide required fields email , newPassword , ConfirmPassword"
+            })
+            
+        }
+
+        const user = await UserModel.findOne({ email })
+        if(!user){
+            return response.status(400).json({
+                message : "Email is not Available",
+                error : true,
+                success :  false
+            })
+        }
+
+        if(newPassword !== confirmPassword){
+            return response.status(400).json({
+                message : "newPassword and confirmPassword Must be Same.",
+                error : true,
+                success : false
+            })
+        }
+        const salt = await bcryptjs.genSalt(10)
+        const hashPassword = await bcryptjs.hash(newPassword,salt)
+        const update = await UserModel.findByIdAndUpdate(user._id,{
+            password :hashPassword 
+        })
+        return response.json({
+            message : "Password updated Successfully",
+            error : false,
+            success : true
+        })
+    }catch(error){
+        return response.status(500).json({
+            message : error.message || error,
+            error : true,
+            success : false
+        })
+    }
+
+}
+
+// refresh token  controler 
+
+export async function refreshToken(request, response) {
+  try {
+    const refreshToken =
+      request.cookies?.refreshToken ||
+      request.headers?.authorization?.split(" ")[1];
+
+    if (!refreshToken) {
+      return response.status(401).json({
+        message: "Invalid or missing refresh token",
+        error: true,
+        success: false
+      });
+    }
+
+    console.log("refreshToken =>", refreshToken);
+
+    // TODO: verify token here (jwt.verify)
+
+    const verifyToken = await jwt.verify(refreshToken,process.env.SECRET_KEY_REFRESH_TOKEN)
+
+    if(!verifyToken){
+        return response.status(401).json({
+            message : "token is expired",
+            error : true,
+            success : false
+        })
+    }
+
+    console.log("verify Token",verifyToken)
+    const userId = verifyToken?._id
+
+    const newAccessToken = await generatedAccessToken(userId)
+    const cookiesOption ={
+        httpOnly : true,
+        secure : true,
+        sameSite : "None"
+    }
+
+    response.cookie('accessToken',newAccessToken,cookiesOption)
+    return response.json({
+      message: "new Access Token Generated",
+      error: false,
+      success: true,
+      data : {
+        accesstoken : newAccessToken
+      }
+    });
+
+  } catch (error) {
+    return response.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false
+    });
+  }
+}
+
