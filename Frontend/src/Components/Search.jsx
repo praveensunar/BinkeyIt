@@ -20,9 +20,7 @@ const Search = () => {
     const redirectToSearchPage = ()=>{
         navigte("/search")
     }
-    console.log("search--",isSearchPage)
-
-  return (
+    return (
     <div className='w-full min-w-[300px] lg:min-w-[420px] h-11 lg:h-12 rounded-lg border overflow-hidden flex items-center text-neutral-500 bg-slate-50 group focus-within:border-[var(--color-primary-200)]'>
         <div>
             

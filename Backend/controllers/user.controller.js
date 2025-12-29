@@ -108,7 +108,7 @@ export async function  verifyEmailcontroller(request,response){
 }
 
 //login controller 
-export async function loginController(request , response){
+export async function loginController(request , response){ 
     try{
         const { email ,password } = request.body
         if(!email || !password){
@@ -152,6 +152,9 @@ export async function loginController(request , response){
         const accesstoken = await generatedAccessToken(user._id)
         const refreshtoken = await generatedRefreshToken(user._id)
 
+        const updateUser = await UserModel.findByIdAndUpdate(user?._id,{
+            last_login_date : new Date()
+        })
         
         const cookiesOption = {
             httpOnly : true,
@@ -374,6 +377,10 @@ export async function uploadAvatar(request,response){
                 success : false
             })
         }
+        const updateUser = await UserModel.findByIdAndUpdate(user._id,{
+            forgot_passsword_otp : "",
+            forgot_passsword_expiry : ""
+        })
 
         return response.json({
             message : "Verify otp successfully",
@@ -500,3 +507,24 @@ export async function refreshToken(request, response) {
   }
 }
 
+//get login user details
+export async function userDetails(request,response){
+    try{
+        const userId = request.userId
+
+        const user = await UserModel.findById(userId).select('-password -refresh_Token')
+
+        return response.json({
+            message : 'user details',
+            data : user,
+            error : false,
+            success : true
+        })
+    } catch(error){
+        return response.status(500).json({
+            message : "Something is Wrong",
+            error : true,
+            success : false
+        })
+    }
+}
