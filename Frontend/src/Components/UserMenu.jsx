@@ -1,22 +1,58 @@
 import React from 'react'
-import { useSelector } from 'react-redux'
-import { Link } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { Link, useNavigate } from 'react-router-dom'
 import Divider from './Divider'
-
-const UserMenu = () => {
+import Axios from '../utils/axios'
+import summaryApi from '../common/SummaryApi'
+import { logout } from '../Store/userSlice'
+import toast, { Toaster } from 'react-hot-toast';
+import AxoisToastError from '../utils/AxiosToast'
+import { HiOutlineExternalLink } from "react-icons/hi";
+const UserMenu = ({close}) => {
     const user = useSelector((state)=> state.user)
+    const dispatch =useDispatch()
+    const navigate = useNavigate()
+
+    const handleLogout = async()=>{
+        try{
+          const response = await Axios({
+            ...summaryApi.logout
+          })
+          if(response.data.success){
+           if(close) {
+            close()
+          }
+              dispatch(logout())
+              localStorage.clear()
+              toast.success(response.data.message)
+              navigate("/")
+          }
+        }catch(error){
+         AxoisToastError(error)
+        }
+    }
+
+    const  handleClose = ()=>{
+      if(close){
+        close()
+      }
+    }
   return (
     <div>
         <div className='font-semibold'>My Account</div>
-        <div className='text-sm capitalize'>{user.name || user.mobile}</div>
-        
+        <div className='text-sm capitalize flex gap-2 items-center'>
+          <span className='max-w-52 text-ellipsis line-clamp-1'>{user.name || user.mobile}</span>
+        <Link onClick={handleClose}  to={"/dashboard/profile"} className='hover:text-yellow-300'>
+        <HiOutlineExternalLink size={15}/>
+        </Link>
+        </div>
         <Divider/>
 
         <div className='text-sm grid gap-1'>
-            <Link to={""} className='px-2 hover:text-amber-300'>My Orders</Link>
-            <Link to={""} className='px-2 hover:text-amber-300'>Save Address</Link>
+            <Link onClick={handleClose} to={"/dashboard/myorders"} className='px-2 hover:bg-orange-300 py-1'>My Orders</Link>
+            <Link onClick={handleClose} to={"/dashboard/address"} className='px-2 hover:bg-orange-300 py-1'>Save Address</Link>
         </div>
-        <button className='text-left px-2 hover:text-red-300'>Log Out</button>
+        <button onClick={handleLogout} className='text-left px-2 hover:bg-orange-300 py-1 w-full'>Log Out</button>
     </div>
   )
 }
