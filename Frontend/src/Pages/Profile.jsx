@@ -60,10 +60,10 @@ const Profile = () => {
         }
        }
   return (
-    <div>
+    <div className='p-4'>
 
         {/* profile upload and display image */}
-        <div className='w-20 h-20 flex items-center justify-center rounded-full overflow-hidden drop-shadow-sm'>
+        <div className='w-20 h-20 flex items-center justify-center rounded-full overflow-hidden drop-shadow-sm '>
             {
                 user.avatar ? (
                     <img src={user.avatar} alt={user.name} className='w-full h-full' />
