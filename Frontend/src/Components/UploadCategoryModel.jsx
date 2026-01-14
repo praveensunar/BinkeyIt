@@ -85,7 +85,7 @@ const UploadCategoryModel = ({ close, fetchData }) => {
         {/* Header */}
         <div className="flex items-center mb-3">
           <h1 className="font-semibold text-lg">Add Category</h1>
-          <button onClick={close} className="ml-auto">
+          <button onClick={close} className="ml-auto cursor-pointer hover:text-red-500">
             <IoClose size={25} />
           </button>
         </div>

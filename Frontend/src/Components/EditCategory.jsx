@@ -77,7 +77,7 @@ const EditCategory = ({ close, fetchData,data : categoryData}) => {
          <div className='bg-white max-w-4xl w-full p-4 rounded'>
            <div className='flex items-center'>
              <h1 className='font-semibold'> Update Category</h1>
-             <button onClick={close} className='ml-auto'>
+             <button onClick={close} className='ml-auto cursor-pointer hover:text-red-500'>
                <IoClose size={25} />
              </button>
            </div>

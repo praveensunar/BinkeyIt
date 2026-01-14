@@ -7,7 +7,7 @@ const ConfirmBox = ({cancel,confirm,close}) => {
 <div className='bg-white w-full max-w-md p-4 rounded '>
     <div className='flex justify-between items-center gap-3'>
         <h1 className='font-semibold'>Permanent Delete</h1>
-        <button onClick={close}><IoClose size={25}/></button>
+        <button className='cursor-pointer hover:text-red-500' onClick={close}><IoClose size={25}/></button>
     </div>
     <p className='my-4'>Are you sure permenet delete ? </p>
     <div className='w-fit ml-auto flex items-center gap-3'>
