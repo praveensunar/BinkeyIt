@@ -5,7 +5,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import { useEffect } from "react";
 import fetchUserDetails from "./utils/fetchUserDetails";
 import { setUserDetails } from './Store/userSlice';
-import { setAllCategory,setAllSubCategory } from "./Store/productSlice";
+import { setAllCategory,setAllSubCategory, setLoadingCategory } from "./Store/productSlice";
 import { useDispatch } from "react-redux";
 import Axios from './utils/axios'
 import summaryApi from './common/SummaryApi'
@@ -24,6 +24,7 @@ function App() {
 
   const fetchCategory = async()=>{
         try{
+          dispatch(setLoadingCategory(true))
         const response = await Axios({
             ...summaryApi.getCategory
         })
@@ -35,13 +36,14 @@ function App() {
         }catch(error){
 
         }finally{
-            // setLoading(false)
+            dispatch(setLoadingCategory(false))
         }
 
     }
 
      const fetchSubCategory = async()=>{
         try{
+          
         const response = await Axios({
             ...summaryApi.getSubCategory
         })
@@ -53,7 +55,8 @@ function App() {
         }catch(error){
 
         }finally{
-            // setLoading(false)
+        
+            
         }
 
     }

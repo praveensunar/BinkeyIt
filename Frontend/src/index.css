@@ -9,10 +9,29 @@
   --color-secondary-200:#00b050;
   --color-secondary-100:#0b1a78;
 }
-
+html{
+  scroll-behavior: smooth;
+}
 body{
   font-family: "Poppins", sans-serif;
   font-weight: 100;
   font-style: normal;
-  @apply bg-blue-50 text-neutral-700;
+  @apply bg-blue-50 text-neutral-700 scroll-smooth;
+}
+
+
+.scroll-none::-webkit-scrollbar{
+  display:none;
+}
+
+.scroll-none {
+  -ms-overflow-style: none;      /* IE & Edge */
+  scrollbar-width: none;         /* Firefox */
+}
+.scrollbarcustome::-webkit-scrollbar{
+  width: 10px;
+  @apply bg-slate-100
+}
+.scrollbarcustome::-webkit-scrollbar-thumb{
+  @apply bg-blue-100 rounded-full
 }

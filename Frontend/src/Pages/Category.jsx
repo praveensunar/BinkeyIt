@@ -86,9 +86,9 @@ const Category = () => {
                 return(
                     <div key={category._id} className='w-32 h-56 rounded shadow-md'>
                         <img src={category.image} alt={category.name} className='w-full object-scale-down' />
-                        <div className='flex items-center h-9 gap-2'>
-                            <button onClick={()=>{setOpenEdit(true),setEditData(category)}}  className='flex-1 bg-green-100 hover:bg-green-200 text-green-600 font-medium py-1'>Edit</button>
-                            <button onClick={()=>{setOpenConfirmDelete(true) ,setDeleteCategory(category)}} className='flex-1 bg-red-100 hover:bg-red-200 text-red-600 font-medium py-1'>Delete</button>
+                        <div className='flex items-center h-9 gap-2 pb-2 px-1'>
+                            <button onClick={()=>{setOpenEdit(true),setEditData(category)}}  className='flex-1 bg-green-100 hover:bg-green-200 text-green-600 font-medium py-1 px-1 rounded border border-green-600'>Edit</button>
+                            <button onClick={()=>{setOpenConfirmDelete(true) ,setDeleteCategory(category)}} className='flex-1 bg-red-100 hover:bg-red-200 text-red-600 font-medium py-1 px-1 rounded border border-red-600'>Delete</button>
                         </div>
                     </div>
                 )
