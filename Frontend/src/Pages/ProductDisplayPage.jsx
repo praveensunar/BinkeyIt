@@ -10,6 +10,7 @@ import image1 from '../assets/minute_delivery.png'
 import image2 from '../assets/Best_Prices_Offers.png'
 import image3 from '../assets/Wide_Assortment.png'
 import { priceWithDiscount } from '../utils/PriceWithDiscount'
+import AddToCartbtn from '../Components/AddToCartbtn'
 
 const ProductDisplayPage = () => {
   const { product } = useParams()
@@ -134,7 +135,7 @@ const ProductDisplayPage = () => {
         </div>
 
         {/* DESCRIPTION */}
-        <div className="my-4 grid gap-3">
+        <div className="my-4 hidden lg:grid gap-3 ">
           <div>
             <p className="font-semibold">Description</p>
             <p>{data.description}</p>
@@ -190,9 +191,9 @@ const ProductDisplayPage = () => {
         {data.stock === 0 ? (
           <p className="text-red-500 my-4">Out of Stock</p>
         ) : (
-          <button className="my-4 px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded">
-            Add
-          </button>
+          <div className='my-4'>
+            <AddToCartbtn data={data}/>
+          </div>
         )}
 
         <h2 className="font-semibold mt-6">Why shop from binkeyit?</h2>
@@ -218,6 +219,26 @@ const ProductDisplayPage = () => {
             </div>
           </div>
         ))}
+
+        {/* only for mobile */}
+        <div className="my-4 grid gap-3 ">
+          <div>
+            <p className="font-semibold">Description</p>
+            <p>{data.description}</p>
+          </div>
+          <div>
+            <p className="font-semibold">Unit</p>
+            <p>{data.unit}</p>
+          </div>
+
+          {data?.more_details &&
+            Object.keys(data.more_details).map((key, index) => (
+              <div key={index}>
+                <p className="font-semibold">{key}</p>
+                <p>{data.more_details[key]}</p>
+              </div>
+            ))}
+        </div>
       </div>
     </section>
   )

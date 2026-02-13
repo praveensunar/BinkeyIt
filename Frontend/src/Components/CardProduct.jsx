@@ -3,9 +3,12 @@ import { DisplayPriceInRupees } from '../utils/DisplayPriceInRupees'
 import { Link } from 'react-router-dom'
 import { valideURLConvert } from '../utils/valideURLConvert'
 import { priceWithDiscount } from '../utils/PriceWithDiscount'
+import { useState } from 'react'
+import AddToCartbtn from './AddToCartbtn'
+
 const CardProduct = ({ data }) => {
   const url = `/product/${valideURLConvert(data.name)}-${data._id}`
-
+  
   return (
     <Link
       to={url}
@@ -60,9 +63,7 @@ const CardProduct = ({ data }) => {
             data.stock == 0 ?(
               <p className='text-sm text-red-500 text-centre' >Out of Stack</p>
             ):(
-              <button className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded">
-          Add
-        </button>
+              <AddToCartbtn data={data} />
             )
           }
         

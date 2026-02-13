@@ -1,11 +1,12 @@
 import toast from "react-hot-toast"
 
-const AxoisToastError = (error)=>{
+const AxiosToastError = (error) => {
+  const message =
+    error?.response?.data?.message ||
+    error?.message ||
+    "Something went wrong"
 
-    toast.error(
-        error?.response?.data?.message
-    )
+  toast.error(message)
 }
 
-
-export default AxoisToastError
+export default AxiosToastError

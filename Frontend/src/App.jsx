@@ -9,11 +9,14 @@ import { setAllCategory,setAllSubCategory, setLoadingCategory } from "./Store/pr
 import { useDispatch } from "react-redux";
 import Axios from './utils/axios'
 import summaryApi from './common/SummaryApi'
-
+import { handleAddItemCart } from "./Store/cartProduct";
+import GlobalProvider from './Proveider/GlobalProvider.jsx'
+import CartMobileLink from "./Components/CartMobile.jsx";
 
 function App() {
 
   const dispatch = useDispatch()
+  
 
   const fetchUser = async()=>{
     const userData = await fetchUserDetails()
@@ -61,20 +64,27 @@ function App() {
 
     }
 
+
+  
+
+
   useEffect(()=>{
    fetchUser()
    fetchCategory()
    fetchSubCategory()
+  //  fetchCartItem()
   },[])
   return (
-    <>
+    <GlobalProvider>
    <Header/>
      <main className="min-h-[78vh] ">
       <Outlet/>
      </main>
      <Footer/>
      <Toaster/>
-     </>
+    <CartMobileLink/>
+     
+     </GlobalProvider>
   )
 }
 
