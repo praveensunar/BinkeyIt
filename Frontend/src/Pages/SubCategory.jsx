@@ -130,7 +130,8 @@ const SubCategory = () => {
      <section>
         <div className='p-2 shadow-md bg-white flex items-center justify-between'>
             <h2 className='font-semibold'>Sub Category</h2>
-            <button onClick={()=>setOpenSubCategory(true)} className='text-sm font-semibold border px-3 py-1 rounded hover:bg-[#FEBE05] '>Add Sub Category</button>
+            <button onClick={()=>setOpenSubCategory(true)} className='text-sm font-semibold border px-3 py-1 rounded hover:bg-[#FEBE05] cursor-pointer
+            '>Add Sub Category</button>
         </div> 
         <div className='overflow-auto w-full max-w-[95vw]'>
           <DisplayTable data={data}

@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom"
+import { Outlet, useLocation } from "react-router-dom"
 import Header from "./Components/Header"
 import Footer from "./Components/Footer"
 import toast, { Toaster } from 'react-hot-toast';
@@ -16,6 +16,7 @@ import CartMobileLink from "./Components/CartMobile.jsx";
 function App() {
 
   const dispatch = useDispatch()
+  const location = useLocation()
   
 
   const fetchUser = async()=>{
@@ -82,8 +83,11 @@ function App() {
      </main>
      <Footer/>
      <Toaster/>
-    <CartMobileLink/>
-     
+     {
+        location.pathname !== '/checkout' && (
+          <CartMobileLink/>
+        )
+     }
      </GlobalProvider>
   )
 }

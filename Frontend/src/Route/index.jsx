@@ -20,6 +20,9 @@ import AdminPermision from "../Layouts/AdminPermision";
 import ProductList from "../Pages/ProductList";
 import ProductDisplayPage from "../Pages/ProductDisplayPage";
 import CartMobile from "../Pages/CartMobile";
+import CheckoutPage from "../Pages/checkOutPage";
+import Success from "../Pages/Success"
+import Cancel from "../Pages/Cancel";
 
 const router = createBrowserRouter([
     {
@@ -98,6 +101,18 @@ const router = createBrowserRouter([
             {
                 path : "cart",
                 element : <CartMobile/>
+            },
+            {
+                path : "checkout",
+                element : <CheckoutPage /> 
+            },
+            {
+                path :  "success",
+                element : <Success />
+            },
+            {
+                path : "cancel",
+                element : <Cancel/>
             }
         ]
     }

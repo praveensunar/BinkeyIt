@@ -54,7 +54,6 @@ const Login = () => {
                 })
                 navigate('/')
             }
-        console.log("response",response)
         
     }catch(error){
             AxoisToastError(error)

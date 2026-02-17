@@ -73,7 +73,7 @@ const Category = () => {
     <section>
         <div className='p-2 shadow-md bg-white flex items-center justify-between'>
             <h2 className='font-semibold'>Category</h2>
-            <button onClick={()=>setOpenUploadCategory(true)} className='text-sm font-semibold border px-3 py-1 rounded hover:bg-[#FEBE05] '>Add Category</button>
+            <button onClick={()=>setOpenUploadCategory(true)} className='text-sm font-semibold border px-3 py-1 rounded hover:bg-[#FEBE05] cursor-pointer '>Add Category</button>
         </div>
         {
             !categoryData[0] && !loading && (
