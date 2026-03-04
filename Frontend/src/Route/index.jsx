@@ -20,7 +20,7 @@ import AdminPermision from "../Layouts/AdminPermision";
 import ProductList from "../Pages/ProductList";
 import ProductDisplayPage from "../Pages/ProductDisplayPage";
 import CartMobile from "../Pages/CartMobile";
-import checkOutPage from "../Pages/CheckoutPage"
+import CheckOutPage from "../Pages/CheckoutPage"
 import Success from "../Pages/Success"
 import Cancel from "../Pages/Cancel";
 
