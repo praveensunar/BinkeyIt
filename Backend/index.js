@@ -19,7 +19,7 @@ const app = express()
 
 const allowedOrigins = [
     process.env.FRONTEND_URL,
-    'https://binkeyit-clone.netlify.app/', // Update this with your actual Netlify URL
+    'https://binkeyit-clone.netlify.app', // Update this with your actual Netlify URL
     'http://localhost:5173'
 ]
 
