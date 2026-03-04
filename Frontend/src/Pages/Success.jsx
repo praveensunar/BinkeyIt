@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useGlobalContext } from '../Proveider/GlobalProvider'
 
 
-const success = () => {
+const Success = () => {
   const location = useLocation()
   const { fetchCartItem, fetchOrder } = useGlobalContext()
 
@@ -23,4 +23,4 @@ const success = () => {
   )
 }
 
-export default success
+export default Success
