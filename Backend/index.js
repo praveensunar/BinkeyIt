@@ -1,7 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
-dotenv .config()
+dotenv.config()
 import cookieParser from 'cookie-parser'
 import morgan from 'morgan'
 import helmet from 'helmet'
@@ -16,38 +16,51 @@ import addressRouter from './routes/address.routes.js'
 import orderRouter from './routes/order.route.js'
 
 const app = express()
+
+const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    'https://binkey-it.netlify.app', // Update this with your actual Netlify URL
+    'http://localhost:5173'
+]
+
 app.use(cors({
-    credentials : true,
-    origin : process.env.FRONTEND_URL
+    credentials: true,
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true)
+        } else {
+            callback(new Error('Not allowed by CORS'))
+        }
+    }
 }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
 app.use(morgan("dev"))
 app.use(helmet({
-    crossOriginResourcePolicy:false
+    crossOriginResourcePolicy: false
 }))
 
-const PORT =  process.env.PORT || 8080
+const PORT = process.env.PORT || 8080
 
-app.get("/",(req ,res)=>{
+app.get("/", (req, res) => {
     //server to client 
     res.json({
-        message :`server is Running ${PORT}`
+        message: `server is Running ${PORT}`
     })
 })
 
-app.use('/api/user',userRouter)
-app.use('/api/category',categoryRouter)
-app.use('/api/file',uploadRouter)
-app.use('/api/subcategory',subcategoryRouter)
-app.use('/api/product',productRouter)
-app.use('/api/cart',cartRouter)
-app.use('/api/address',addressRouter)
-app.use('/api/order',orderRouter)
+app.use('/api/user', userRouter)
+app.use('/api/category', categoryRouter)
+app.use('/api/file', uploadRouter)
+app.use('/api/subcategory', subcategoryRouter)
+app.use('/api/product', productRouter)
+app.use('/api/cart', cartRouter)
+app.use('/api/address', addressRouter)
+app.use('/api/order', orderRouter)
 
-connectDB().then(()=>{
-app.listen(PORT ,()=>{
-    console.log("Server is Running...",PORT)
-})
+connectDB().then(() => {
+    app.listen(PORT, () => {
+        console.log("Server is Running...", PORT)
+    })
 })
