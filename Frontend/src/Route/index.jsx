@@ -104,7 +104,7 @@ const router = createBrowserRouter([
             },
             {
                 path : "checkout",
-                element : <checkOutPage /> 
+                element : <CheckOutPage /> 
             },
             {
                 path :  "success",
