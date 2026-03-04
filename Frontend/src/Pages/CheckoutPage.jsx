@@ -10,7 +10,7 @@ import toast from 'react-hot-toast'
 import { useNavigate } from  'react-router-dom'
 
 
-const CheckOutPage = () => {
+const CheckoutPage = () => {
      const {notDiscountTotalPrice,totalPrice,totalQty,fetchCartItem,fetchOrde } = useGlobalContext()
      const [openAddress , setOpenAddress] = useState(false)
      const addressList = useSelector(state => state.addresses.addressList)
@@ -163,4 +163,4 @@ const CheckOutPage = () => {
   )
 }
 
-export default CheckOutPage
+export default CheckoutPage
