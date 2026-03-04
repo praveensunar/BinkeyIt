@@ -20,7 +20,7 @@ import AdminPermision from "../Layouts/AdminPermision";
 import ProductList from "../Pages/ProductList";
 import ProductDisplayPage from "../Pages/ProductDisplayPage";
 import CartMobile from "../Pages/CartMobile";
-import CheckoutPage from "../Pages/checkOutPage";
+import checkOutPage from  "../Pages/CheckoutPage.jsx"
 import Success from "../Pages/Success"
 import Cancel from "../Pages/Cancel";
 
@@ -104,7 +104,7 @@ const router = createBrowserRouter([
             },
             {
                 path : "checkout",
-                element : <CheckoutPage /> 
+                element : <CheckOutPage /> 
             },
             {
                 path :  "success",
