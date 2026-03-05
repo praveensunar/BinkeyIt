@@ -84,7 +84,7 @@ export async function verifyEmailcontroller(request, response) {
 
         const user = await UserModel.findOne({ _id: code })
 
-        if (user) {
+        if (!user) {
             return response.status(400).json({
                 message: " invalid code",
                 error: true,
@@ -102,7 +102,7 @@ export async function verifyEmailcontroller(request, response) {
         return response.status(500).json({
             message: error.message || error,
             error: true,
-            success: true
+            success: false
         })
     }
 }
@@ -169,8 +169,8 @@ export async function loginController(request, response) {
             error: false,
             success: true,
             data: {
-                accesstoken,
-                refreshtoken
+                accessToken: accesstoken,
+                refreshToken: refreshtoken
             }
         })
 
@@ -495,7 +495,7 @@ export async function refreshToken(request, response) {
             error: false,
             success: true,
             data: {
-                accesstoken: newAccessToken
+                accessToken: newAccessToken
             }
         });
 

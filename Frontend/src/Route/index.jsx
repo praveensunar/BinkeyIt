@@ -23,96 +23,101 @@ import CartMobile from "../Pages/CartMobile";
 import CheckoutPage from "../Pages/CheckoutPage.jsx"
 import Success from "../Pages/Success.jsx"
 import Cancel from "../Pages/Cancel";
+import VerifyEmail from "../Pages/VerifyEmail";
 
 const router = createBrowserRouter([
     {
-        path : '/',
-        element : <App/>,
-        children : [
+        path: '/',
+        element: <App />,
+        children: [
             {
-               path : "",
-               element : <Home/> 
-            },{
-                path : "search",
-                element : <SearchPage/> 
-            },{
-                path : "login",
-                element : <Login />
+                path: "",
+                element: <Home />
+            }, {
+                path: "search",
+                element: <SearchPage />
+            }, {
+                path: "login",
+                element: <Login />
             },
             {
-                path : "register",
-                element : <Register/>
+                path: "register",
+                element: <Register />
             },
             {
-                path : "forgot-password",
-                element : <ForgotPassword />
+                path: "verify-email",
+                element: <VerifyEmail />
             },
             {
-                path : "verify-forgot-password-otp",
-                element : <OtpVerification />
-            },{
-                path : "reset-password",
-                element : <ResetPasswod />
-            },{
-                path : 'user',
-                element : <UserMenuMobile/>
+                path: "forgot-password",
+                element: <ForgotPassword />
             },
             {
-                path : 'dashboard',
-                element : <Dashboard/>,
-                children : [
+                path: "verify-forgot-password-otp",
+                element: <OtpVerification />
+            }, {
+                path: "reset-password",
+                element: <ResetPasswod />
+            }, {
+                path: 'user',
+                element: <UserMenuMobile />
+            },
+            {
+                path: 'dashboard',
+                element: <Dashboard />,
+                children: [
                     {
-                        path : "profile",
-                        element : <Profile/>
-                    },{
-                        path : "myorders",
-                        element : <Myorders />
-                    },{
-                        path : "address",
-                        element : <Address />
-                    },{
-                        path : "category",
-                        element : <AdminPermision> <Category/></AdminPermision>
-                    },{
-                        path : "subcategory",
-                        element : <AdminPermision> <SubCategory/></AdminPermision>
-                    },{
-                        path : "product",
-                        element : <AdminPermision> <ProductAdmin/></AdminPermision>
-                    },{
-                        path : "upload-product",
-                        element : <AdminPermision> <UploadProduct/></AdminPermision>
+                        path: "profile",
+                        element: <Profile />
+                    }, {
+                        path: "myorders",
+                        element: <Myorders />
+                    }, {
+                        path: "address",
+                        element: <Address />
+                    }, {
+                        path: "category",
+                        element: <AdminPermision> <Category /></AdminPermision>
+                    }, {
+                        path: "subcategory",
+                        element: <AdminPermision> <SubCategory /></AdminPermision>
+                    }, {
+                        path: "product",
+                        element: <AdminPermision> <ProductAdmin /></AdminPermision>
+                    }, {
+                        path: "upload-product",
+                        element: <AdminPermision> <UploadProduct /></AdminPermision>
                     }
-                ] 
+                ]
             },
             {
-                path : ':category',
-                children : [
+                path: ':category',
+                children: [
                     {
-                        path : ":subCategory",
-                        element : <ProductList/>
+                        path: ":subCategory",
+                        element: <ProductList />
                     }
-                ] 
+                ]
             },
             {
-                path : "product/:product",
-                element : <ProductDisplayPage/>
+                path: "product/:product",
+                element: <ProductDisplayPage />
             },
             {
-                path : "cart",
-                element : <CartMobile/>
+                path: "cart",
+                element: <CartMobile />
             },
             {
-                path : "checkout",
-                element : <CheckoutPage /> 
+                path: "checkout",
+                element: <CheckoutPage />
             },
             {
-                path :  "success",
-                element : <Success />
+                path: "success",
+                element: <Success />
             },
             {
-                path : "cancel",
-                element : <Cancel/>
+                path: "cancel",
+                element: <Cancel />
             }
         ]
     }
