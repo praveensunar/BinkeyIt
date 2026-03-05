@@ -230,19 +230,11 @@ export async function webHookPayment(request, response) {
 
             console.log(`Updated ${updateResult.modifiedCount} orders to PAID status.`);
 
-<<<<<<< HEAD
             if (userId) {
                 // Clear cart only after successful payment confirmation
                 await UserModel.findByIdAndUpdate(userId, { shopping_cart: [] });
                 await CartProductModel.deleteMany({ userId: userId });
                 console.log(`Cart cleared for user ${userId}`);
-=======
-            if (order) {
-                const removeCartItems = UserModel.findByIdAndUpdate(userId, {
-                    shoppin_cart: []
-                })
-                const removeCartProductDB = CartProductModel.deleteMany({ _id: userId })
->>>>>>> parent of c7a8190 (fix: correct shopping cart update logic in webHookPayment function)
             }
         }
 
