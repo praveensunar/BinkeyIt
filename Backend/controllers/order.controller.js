@@ -96,6 +96,10 @@ export async function paymentController(request, response) {
 
         const user = await UserModel.findById(userId)
 
+        const frontendUrl = (process.env.FRONTEND_URL === "http://localhost:5173" || !process.env.FRONTEND_URL)
+            ? "https://binkeyit-clone.netlify.app"
+            : process.env.FRONTEND_URL;
+
         const params = {
             submit_type: 'pay',
             mode: 'payment',
@@ -106,8 +110,8 @@ export async function paymentController(request, response) {
                 addressId: addressId
             },
             line_items: line_items,
-            success_url: `${process.env.FRONTEND_URL}/success`,
-            cancel_url: `${process.env.FRONTEND_URL}/cancel`,
+            success_url: `${frontendUrl}/success`,
+            cancel_url: `${frontendUrl}/cancel`,
         }
 
         const session = await Stripe.checkout.sessions.create(params)
