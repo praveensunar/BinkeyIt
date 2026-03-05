@@ -11,7 +11,7 @@ const Footer = () => {
     <div className='flex items-center gap-4 justify-center text-2xl'>
         <a href="" className='hover:text-[var(--color-primary-100)]'><FaFacebook /></a>
         <a href="" className='hover:text-[var(--color-primary-100)]'><FaInstagram /></a>
-        <a href="" className='hover:text-[var(--color-primary-100)]'><FaLinkedin /></a>
+        <a href="https://www.linkedin.com/in/praveen-vishwakarma-/" className='hover:text-[var(--color-primary-100)]'><FaLinkedin /></a>
     </div>
         </div>
         
