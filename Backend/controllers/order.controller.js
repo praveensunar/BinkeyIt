@@ -183,57 +183,76 @@ export async function webHookPayment(request, response) {
         const event = request.body
         const endpointSecret = process.env.STRIPE_ENDPOINT_WEBHOOK_SECRET_KEY
 
-        console.log("Stripe Webhook Event Type:", event.type)
+        console.log("---------------- WEBHOOK EVENT RECEIVED ----------------")
+        console.log("Event Type:", event.type)
 
         switch (event.type) {
             case 'checkout.session.completed':
                 const session = event.data.object;
 
-                console.log("Processing Session Metadata:", session.metadata)
+                console.log("Session ID:", session.id)
+                console.log("Metadata in Session:", JSON.stringify(session.metadata, null, 2))
 
-                const lineItems = await Stripe.checkout.sessions.listLineItems(session.id)
-                const userId = session.metadata.userId
+                const userId = session.metadata?.userId
+                const addressId = session.metadata?.addressId
 
                 if (!userId) {
-                    console.error("No userId found in session metadata!");
+                    console.error("DIAGNOSTIC ERROR: No userId found in session.metadata. Cannot proceed with order creation.");
                     return response.status(400).send("User ID missing in metadata");
                 }
+
+                console.log("Retrieving line items for session...")
+                const lineItems = await Stripe.checkout.sessions.listLineItems(session.id)
+                console.log(`Retrieved ${lineItems.data.length} line items.`)
 
                 const orderProduct = await getOrderProductItems(
                     {
                         lineItems: lineItems,
                         userId: userId,
-                        addressId: session.metadata.addressId,
+                        addressId: addressId,
                         paymentId: session.payment_intent,
                         payment_status: session.payment_status,
                     })
 
-                console.log("Generated Order Payload Count:", orderProduct.length)
+                console.log(`Prepared ${orderProduct.length} products for OrderModel.insertMany`)
 
-                const order = await OrderModel.insertMany(orderProduct)
+                if (orderProduct.length > 0) {
+                    try {
+                        const order = await OrderModel.insertMany(orderProduct)
+                        console.log(`SUCCESS: Created ${order.length} order records in MongoDB.`)
 
-                if (order && order.length > 0) {
-                    console.log("Orders successfully saved to DB. Updating user cart...")
-
-                    // Update user to clear shopping_cart array
-                    await UserModel.findByIdAndUpdate(userId, {
-                        shopping_cart: []
-                    })
-
-                    // Remove individual cart items from DB
-                    const deleteResult = await CartProductModel.deleteMany({ userId: userId })
-                    console.log(`Cart products cleared for user ${userId}. Count: ${deleteResult.deletedCount}`)
+                        // Clear cart ONLY on success
+                        console.log("Initiating cart cleanup for user:", userId)
+                        await UserModel.findByIdAndUpdate(userId, { shopping_cart: [] })
+                        const deleteResult = await CartProductModel.deleteMany({ userId: userId })
+                        console.log(`Cart products cleared. Deleted count: ${deleteResult.deletedCount}`)
+                    } catch (dbError) {
+                        console.error("MONGODB INSERTION ERROR:", dbError.message)
+                        console.error("Payload that failed:", JSON.stringify(orderProduct, null, 2))
+                        return response.status(500).json({
+                            message: "Database insertion failed",
+                            error: dbError.message,
+                            success: false
+                        })
+                    }
                 } else {
-                    console.warn("Order creation returned empty or failed.")
+                    console.warn("WARNING: No valid products found to save. Check getOrderProductItems logic.")
                 }
                 break;
+
+            case 'payment_intent.succeeded':
+                console.log("Payment Intent Succeeded for:", event.data.object.id)
+                break;
+
             default:
-                console.log(`Unhandled event type ${event.type}`)
+                console.log(`Event type not handled specifically: ${event.type}`)
         }
 
+        console.log("---------------- WEBHOOK FINISHED ----------------")
         response.json({ received: true });
     } catch (error) {
-        console.error("Webhook Error:", error.message)
+        console.error("FATAL WEBHOOK ERROR:", error.message)
+        console.error(error.stack)
         return response.status(500).json({
             message: error.message || error,
             error: true,
