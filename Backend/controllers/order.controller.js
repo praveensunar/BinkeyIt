@@ -100,14 +100,24 @@ export async function paymentController(request, response) {
             ? "https://binkeyit-clone.netlify.app"
             : process.env.FRONTEND_URL;
 
+        // NEW: Package cart details into metadata for bulletproof webhook recovery
+        const cartItemsMetadata = list_items.map(item => ({
+            productId: item.productId._id.toString(),
+            name: item.productId.name,
+            image: Object.values(item.productId.image)[0],
+            quantity: item.quntity,
+            price: priceWithDiscount(item.productId.price, item.productId.discount)
+        }));
+
         const params = {
             submit_type: 'pay',
             mode: 'payment',
             payment_method_types: ['card'],
             customer_email: user.email,
             metadata: {
-                userId: userId.toString(), // Ensure string
-                addressId: addressId.toString() // Ensure string
+                userId: userId.toString(),
+                addressId: addressId.toString(),
+                cartItems: JSON.stringify(cartItemsMetadata) // Store the whole cart!
             },
             line_items: line_items,
             success_url: `${frontendUrl}/success`,
@@ -137,20 +147,34 @@ const getOrderProductItems = async (
         addressId,
         paymentId,
         payment_status,
+        cartItemsMetadata // New parameter
     }) => {
-    const productList = []
 
+    // If we have cartItemsMetadata directly from session, use it! It's much faster and more reliable.
+    if (cartItemsMetadata && cartItemsMetadata.length > 0) {
+        return cartItemsMetadata.map(item => ({
+            userId: userId,
+            orderId: `ORD-${new mongoose.Types.ObjectId()}`,
+            productId: item.productId,
+            product_details: {
+                name: item.name,
+                image: [item.image]
+            },
+            paymentId: paymentId,
+            payment_status: payment_status,
+            delivery_address: addressId,
+            subTotalAmt: Number(item.price * item.quantity),
+            totalAmt: Number(item.price * item.quantity),
+        }));
+    }
+
+    // Fallback to the old method if metadata is missing (unlikely but safe)
+    const productList = []
     try {
         if (lineItems?.data?.length) {
             for (const item of lineItems.data) {
                 const product = await Stripe.products.retrieve(item.price.product)
-
-                // Get productId from stripe product metadata
                 const productId = product.metadata.productId;
-
-                if (!productId) {
-                    console.error("Missing productId in Stripe product metadata for product:", product.id);
-                }
 
                 const payload = {
                     userId: userId,
@@ -166,15 +190,12 @@ const getOrderProductItems = async (
                     subTotalAmt: Number(item.amount_total / 100),
                     totalAmt: Number(item.amount_total / 100),
                 }
-
                 productList.push(payload)
             }
         }
     } catch (error) {
-        console.error("Error in getOrderProductItems:", error);
-        throw error; // Re-throw to be caught in webHookPayment
+        console.error("Error in fallback getOrderProductItems:", error);
     }
-
     return productList
 }
 // http://localhost:8080/
@@ -183,76 +204,62 @@ export async function webHookPayment(request, response) {
         const event = request.body
         const endpointSecret = process.env.STRIPE_ENDPOINT_WEBHOOK_SECRET_KEY
 
-        console.log("---------------- WEBHOOK EVENT RECEIVED ----------------")
-        console.log("Event Type:", event.type)
+        console.log("---------------- WEBHOOK EVENT ----------------")
+        console.log("Type:", event.type)
 
-        switch (event.type) {
-            case 'checkout.session.completed':
-                const session = event.data.object;
+        if (event.type === 'checkout.session.completed') {
+            const session = event.data.object;
+            const metadata = session.metadata;
 
-                console.log("Session ID:", session.id)
-                console.log("Metadata in Session:", JSON.stringify(session.metadata, null, 2))
+            console.log("Webhook Metadata Check:", !!metadata.cartItems ? "Cart metadata found" : "Cart metadata MISSING")
 
-                const userId = session.metadata?.userId
-                const addressId = session.metadata?.addressId
+            const userId = metadata?.userId
+            if (!userId) {
+                console.error("No userId in metadata. Aborting.")
+                return response.status(400).send("No userId")
+            }
 
-                if (!userId) {
-                    console.error("DIAGNOSTIC ERROR: No userId found in session.metadata. Cannot proceed with order creation.");
-                    return response.status(400).send("User ID missing in metadata");
+            // Parse our bulletproof cart metadata
+            let cartItems = [];
+            if (metadata.cartItems) {
+                try {
+                    cartItems = JSON.parse(metadata.cartItems);
+                } catch (e) {
+                    console.error("Failed to parse cartItems metadata:", e.message);
                 }
+            }
 
-                console.log("Retrieving line items for session...")
-                const lineItems = await Stripe.checkout.sessions.listLineItems(session.id)
-                console.log(`Retrieved ${lineItems.data.length} line items.`)
+            const lineItems = await Stripe.checkout.sessions.listLineItems(session.id)
 
-                const orderProduct = await getOrderProductItems(
-                    {
-                        lineItems: lineItems,
-                        userId: userId,
-                        addressId: addressId,
-                        paymentId: session.payment_intent,
-                        payment_status: session.payment_status,
-                    })
+            const orderProduct = await getOrderProductItems({
+                lineItems: lineItems,
+                userId: userId,
+                addressId: metadata.addressId,
+                paymentId: session.payment_intent,
+                payment_status: session.payment_status,
+                cartItemsMetadata: cartItems
+            })
 
-                console.log(`Prepared ${orderProduct.length} products for OrderModel.insertMany`)
+            console.log(`Webhook prepared ${orderProduct.length} items for storage.`)
 
-                if (orderProduct.length > 0) {
-                    try {
-                        const order = await OrderModel.insertMany(orderProduct)
-                        console.log(`SUCCESS: Created ${order.length} order records in MongoDB.`)
+            if (orderProduct.length > 0) {
+                const order = await OrderModel.insertMany(orderProduct)
+                console.log(`SUCCESS: ${order.length} orders stored for user ${userId}`)
 
-                        // Clear cart ONLY on success
-                        console.log("Initiating cart cleanup for user:", userId)
-                        await UserModel.findByIdAndUpdate(userId, { shopping_cart: [] })
-                        const deleteResult = await CartProductModel.deleteMany({ userId: userId })
-                        console.log(`Cart products cleared. Deleted count: ${deleteResult.deletedCount}`)
-                    } catch (dbError) {
-                        console.error("MONGODB INSERTION ERROR:", dbError.message)
-                        console.error("Payload that failed:", JSON.stringify(orderProduct, null, 2))
-                        return response.status(500).json({
-                            message: "Database insertion failed",
-                            error: dbError.message,
-                            success: false
-                        })
-                    }
-                } else {
-                    console.warn("WARNING: No valid products found to save. Check getOrderProductItems logic.")
+                if (order) {
+                    await UserModel.findByIdAndUpdate(userId, { shopping_cart: [] })
+                    await CartProductModel.deleteMany({ userId: userId })
+                    console.log("Cart cleared effectively.")
                 }
-                break;
-
-            case 'payment_intent.succeeded':
-                console.log("Payment Intent Succeeded for:", event.data.object.id)
-                break;
-
-            default:
-                console.log(`Event type not handled specifically: ${event.type}`)
+            } else {
+                console.warn("No order items found to save. Check getOrderProductItems logic.")
+            }
         }
 
-        console.log("---------------- WEBHOOK FINISHED ----------------")
+        console.log("---------------- WEBHOOK END ----------------")
         response.json({ received: true });
     } catch (error) {
-        console.error("FATAL WEBHOOK ERROR:", error.message)
-        console.error(error.stack)
+        console.error("WEBHOOK ERROR:", error.message)
         return response.status(500).json({
             message: error.message || error,
             error: true,
