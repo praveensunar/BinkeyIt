@@ -13,7 +13,6 @@ const Success = () => {
 
   useEffect(() => {
     dispatch(handleAddItemCart([]))
-    fetchCartItem()
     fetchOrder()
   }, [])
   return (
