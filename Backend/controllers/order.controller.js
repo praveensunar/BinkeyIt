@@ -78,7 +78,7 @@ export async function paymentController(request, response) {
                         name: item.productId.name,
                         images: [Object.values(item.productId.image)[0]],
                         metadata: {
-                            productId: item.productId._id,
+                            productId: item.productId._id.toString(), // Ensure string
                         },
                     },
                     unit_amount: priceWithDiscount(item.productId.price, item.productId.discount) * 100,
@@ -106,8 +106,8 @@ export async function paymentController(request, response) {
             payment_method_types: ['card'],
             customer_email: user.email,
             metadata: {
-                userId: userId,
-                addressId: addressId
+                userId: userId.toString(), // Ensure string
+                addressId: addressId.toString() // Ensure string
             },
             line_items: line_items,
             success_url: `${frontendUrl}/success`,
