@@ -78,7 +78,7 @@ export async function paymentController(request, response) {
                         name: item.productId.name,
                         images: [Object.values(item.productId.image)[0]],
                         metadata: {
-                            productId: item.productId._id.toString(), // Ensure string
+                            productId: item.productId._id,
                         },
                     },
                     unit_amount: priceWithDiscount(item.productId.price, item.productId.discount) * 100,
