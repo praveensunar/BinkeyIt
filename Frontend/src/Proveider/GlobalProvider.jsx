@@ -81,6 +81,22 @@ const GlobalProvider = ({ children }) => {
         }
     }
 
+    const deleteAllCartItem = async () => {
+        try {
+            const response = await Axios({
+                ...summaryApi.deleteCartItemAll
+            })
+            const { data: responseData } = response
+
+            if (responseData.success) {
+                fetchCartItem()
+            }
+            return responseData
+        } catch (error) {
+            AxiosToastError(error)
+        }
+    }
+
     useEffect(() => {
         const qty = cartItem.reduce((preve, curr) => {
             return preve + curr.quntity
@@ -154,6 +170,7 @@ const GlobalProvider = ({ children }) => {
             fetchCartItem,
             updateCartItem,
             deleteCartItem,
+            deleteAllCartItem,
             totalQty,
             totalPrice,
             fetchAddress,

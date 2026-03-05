@@ -10,128 +10,196 @@ import { priceWithDiscount } from '../utils/PriceWithDiscount'
 import ImageEmptyCart from "../assets/empty_cart.png"
 import toast from 'react-hot-toast'
 
-const DisplayCartItem = ({close}) => {
-    const {notDiscountTotalPrice,totalPrice,totalQty } = useGlobalContext()
-    const cartItem = useSelector(state => state.cartItem.cart )
+const DisplayCartItem = ({ close }) => {
+
+    const { notDiscountTotalPrice, totalPrice, totalQty } = useGlobalContext()
+    const cartItem = useSelector(state => state.cartItem.cart)
     const user = useSelector(state => state.user)
     const navigate = useNavigate()
 
-    const redirectTochechout =()=>{
-        if(user?._id){
+    const redirectTochechout = () => {
+        if (user?._id) {
             navigate("/checkout")
-            if(close){
-                close()
-            }
-            return 
+            if (close) close()
+            return
         }
         toast("Please login")
     }
-  return (
-    <section className='bg-neutral-900/70 fixed top-0 bottom-0 right-0 left-0 z-50'>
-        <div className='bg-white w-full max-w-sm min-h-screen max-h-screen ml-auto'>
-            <div className='flex items-center justify-between p-4 shadow-md gap-3'>
-                <h2 className='font-semibold'>Cart</h2>
-                <Link to={'/'} className='lg:hidden'>
-                <button className='cursor-pointer hover:text-red-500' onClick={close}><IoClose size={25}/></button>
-                </Link>
-                <button className='cursor-pointer hover:text-red-500 hidden lg:block' onClick={close}><IoClose size={25}/></button>
-            </div>
 
-            <div className='lg:min-h-[80vh] min-h-[75vh] h-full max-h-[calc(100vh-150px)] bg-blue-50 p-2 flex flex-col gap-4'>
-                {/* display items */}
-                {
-                    cartItem[0] ? (
-                        <>
-                            <div className='flex items-center px-4 py-2 bg-blue-100 text-blue-500 rounded-full justify-between'>
-                                <p> Your total Savings</p>
-                                <p>{DisplayPriceInRupees(notDiscountTotalPrice - totalPrice)}</p>
-                            </div>
-                                <div className='bg-white rounded-lg p-4 grid gap-5 overflow-auto'>
-                                {
-                                    cartItem[0] && (
-                                        cartItem.map((item , index)=>{
-                                            return (
-                                                <div key={item._id+"cartItemDisplay"} className='flex w-full gap-4'>
-                                                    <div className='w-20 h-18 min-h-16 min-w-16 border'>
-                                                        <img src={item?.productId?.image[0]}
-                                                        className='object-scale-down'/>
-                                                    </div>
-                                                    <div className='w-full max-w-sm text-xs'>
-                                                        <p className='text-xs text-ellipsis line-clamp-2'>{item?.productId?.name}</p>
-                                                        <p className='text-neutral-400'>{item.productId.unit}</p>
-                                                        <p className='font-semibold'>{DisplayPriceInRupees(priceWithDiscount(item?.productId?.price,item?.productId?.discount))}</p>
-                                                    </div>
-                                                    <div>
-                                                        <AddToCartbtn data={item?.productId} />
-                                                    </div>
+    return (
+        <section className='bg-neutral-900/70 fixed inset-0 z-50'>
+
+            {/* Cart Drawer */}
+            <div className='bg-white w-full max-w-sm h-full ml-auto flex flex-col'>
+
+                {/* Header */}
+                <div className='flex items-center justify-between p-4 shadow-md'>
+                    <h2 className='font-semibold'>Cart</h2>
+
+                    <button
+                        className='cursor-pointer hover:text-red-500'
+                        onClick={close}
+                    >
+                        <IoClose size={25} />
+                    </button>
+                </div>
+
+                {/* Scrollable Cart Content */}
+                <div className='flex-1 overflow-y-auto bg-blue-50 p-3 flex flex-col gap-4'>
+
+                    {
+                        cartItem[0] ? (
+                            <>
+
+                                {/* Savings */}
+                                <div className='flex items-center px-4 py-2 bg-blue-100 text-blue-500 rounded-full justify-between'>
+                                    <p>Your total Savings</p>
+                                    <p>
+                                        {DisplayPriceInRupees(notDiscountTotalPrice - totalPrice)}
+                                    </p>
+                                </div>
+
+                                {/* Cart Items */}
+                                <div className='bg-white rounded-lg p-4 grid gap-5'>
+
+                                    {
+                                        cartItem.map((item) => (
+                                            <div
+                                                key={item._id + "cartItemDisplay"}
+                                                className='flex w-full gap-3 items-center'
+                                            >
+
+                                                {/* Product Image */}
+                                                <div className='w-16 h-16 min-w-16 border rounded'>
+                                                    <img
+                                                        src={item?.productId?.image[0]}
+                                                        className='w-full h-full object-contain'
+                                                    />
                                                 </div>
-                                            )
-                                        })
-                                    )
-                                }
-                                
-                            </div> 
 
-                            <div className='bg-white p-4 border rounded'>
-                                <h3 className='font-semibold'>Bill Details</h3>
-                                <div className='flex gap-4 justify-between ml-1 text-sm'>
-                                    <p>Items total</p>
-                                    <p className='flex items-center gap-2 text-neutral-600'><span className='line-through text-neutral-400'>{DisplayPriceInRupees(notDiscountTotalPrice)}</span><span>{DisplayPriceInRupees(totalPrice)}</span></p>
+                                                {/* Product Info */}
+                                                <div className='flex-1 text-xs'>
+                                                    <p className='line-clamp-2'>
+                                                        {item?.productId?.name}
+                                                    </p>
+
+                                                    <p className='text-neutral-400'>
+                                                        {item?.productId?.unit}
+                                                    </p>
+
+                                                    <p className='font-semibold'>
+                                                        {DisplayPriceInRupees(
+                                                            priceWithDiscount(
+                                                                item?.productId?.price,
+                                                                item?.productId?.discount
+                                                            )
+                                                        )}
+                                                    </p>
+                                                </div>
+
+                                                {/* Quantity Button */}
+                                                <AddToCartbtn data={item?.productId} />
+
+                                            </div>
+                                        ))
+                                    }
+
                                 </div>
 
-                                <div className='flex gap-4 justify-between ml-1 text-sm'>
-                                    <p>Quntity total</p>
-                                    <p className='flex items-center gap-2 text-neutral-600'>{totalQty} Item</p>
+                                {/* Bill Details */}
+                                <div className='bg-white p-4 border rounded space-y-2 text-sm'>
+
+                                    <h3 className='font-semibold'>Bill Details</h3>
+
+                                    <div className='flex justify-between'>
+                                        <p>Items total</p>
+
+                                        <p className='flex gap-2'>
+                                            <span className='line-through text-neutral-400'>
+                                                {DisplayPriceInRupees(notDiscountTotalPrice)}
+                                            </span>
+
+                                            <span>
+                                                {DisplayPriceInRupees(totalPrice)}
+                                            </span>
+                                        </p>
+                                    </div>
+
+                                    <div className='flex justify-between'>
+                                        <p>Quantity total</p>
+                                        <p>{totalQty} Items</p>
+                                    </div>
+
+                                    <div className='flex justify-between'>
+                                        <p>Delivery Fee</p>
+                                        <p className='text-green-600 font-medium'>FREE</p>
+                                    </div>
+
                                 </div>
 
-                                <div className='flex gap-4 justify-between ml-1 text-sm'>
-                                    <p>Quntity total</p>
-                                    <p className='flex items-center gap-2 text-neutral-600'>Free</p>
-                                </div>
-
-                            
-                            </div>
-                            <div className='font-semibold flex items-center justify-between bg-white p-2 rounded'>
-                                    <p>Grand Total : </p>
+                                {/* Grand Total */}
+                                <div className='font-semibold flex items-center justify-between bg-white p-3 rounded'>
+                                    <p>Grand Total</p>
                                     <p>{DisplayPriceInRupees(totalPrice)}</p>
                                 </div>
-                        </>
 
-                    ):(
-                       <div className='flex flex-col justify-center items-center '>
-                        <img src={ImageEmptyCart}
-                        className='w-full h-full object-scale-down'/>
-                        <Link to={"/"} onClick={close} className='bg-green-600 px-4 py-2 text-white rounded hover:bg-green-700'>Shop Now</Link>
-                        
-                       </div> 
+                            </>
+                        ) : (
+
+                            /* Empty Cart */
+                            <div className='flex flex-col justify-center items-center h-full gap-4'>
+
+                                <img
+                                    src={ImageEmptyCart}
+                                    className='w-40 object-contain'
+                                />
+
+                                <Link
+                                    to={"/"}
+                                    onClick={close}
+                                    className='bg-green-600 px-4 py-2 text-white rounded hover:bg-green-700'
+                                >
+                                    Shop Now
+                                </Link>
+
+                            </div>
+
+                        )
+                    }
+
+                </div>
+
+                {/* Sticky Checkout Section */}
+                {
+                    cartItem[0] && (
+
+                        <div className='p-3 border-t bg-white sticky bottom-0'>
+
+                            <div className='bg-green-700 text-white px-4 font-bold text-base py-4 rounded flex items-center justify-between'>
+
+                                <div>
+                                    {DisplayPriceInRupees(totalPrice)}
+                                </div>
+
+                                <button
+                                    onClick={redirectTochechout}
+                                    className='flex items-center gap-1 hover:text-yellow-200'
+                                >
+                                    Proceed
+                                    <FaCaretRight size={20} />
+                                </button>
+
+                            </div>
+
+                        </div>
+
                     )
                 }
-                   
+
             </div>
-            {
-                cartItem[0] && (
 
-                        <div className='p-2'>
-                            <div className='bg-green-700 text-neutral-100 px-4 font-bold text-base py-4 sticky bottom-4 rounded flex items-center gap-4 justify-between'>
-                            <div>
-                                {DisplayPriceInRupees(totalPrice)}
-                            </div>
-
-                            <button onClick={redirectTochechout} className='flex items-center hover:text-yellow-200 cursor-pointer'>
-                                Proceed
-                                <span><FaCaretRight size={25}/></span>
-
-                            </button>
-                            </div>
-                        </div>
-                )
-
-            }
-            
-
-        </div>
-    </section>
-  )
+        </section>
+    )
 }
 
 export default DisplayCartItem

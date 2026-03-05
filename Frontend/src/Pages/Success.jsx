@@ -9,9 +9,10 @@ import { useGlobalContext } from '../Proveider/GlobalProvider'
 const Success = () => {
   const location = useLocation()
   const dispatch = useDispatch()
-  const { fetchCartItem, fetchOrder } = useGlobalContext()
+  const { deleteAllCartItem, fetchOrder } = useGlobalContext()
 
   useEffect(() => {
+    deleteAllCartItem()
     dispatch(handleAddItemCart([]))
     fetchOrder()
   }, [])
