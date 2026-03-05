@@ -126,8 +126,27 @@ export async function paymentController(request, response) {
 
         const session = await Stripe.checkout.sessions.create(params)
 
-        const removeCartItems = await CartProductModel.deleteMany({ userId: userId })
-        const updateInUser = await UserModel.updateOne({ _id: userId }, { shopping_cart: [] })
+        if (session.id) {
+            // NEW: Create PENDING orders in DB immediately
+            // This ensures the record exists before the user finishes paying
+            const orderPayload = list_items.map(item => ({
+                userId: userId,
+                orderId: `ORD-${new mongoose.Types.ObjectId()}`,
+                productId: item.productId._id,
+                product_details: {
+                    name: item.productId.name,
+                    image: item.productId.image?.[0]
+                },
+                paymentId: session.id, // Link to Stripe Session ID
+                payment_status: "PENDING",
+                delivery_address: addressId,
+                subTotalAmt: subTotalAmt,
+                totalAmt: totalAmt,
+            }));
+
+            await OrderModel.insertMany(orderPayload);
+            console.log(`Pre-orders created for user ${userId} with Session ID: ${session.id}`);
+        }
 
         return response.status(200).json(session)
     } catch (error) {
@@ -202,57 +221,33 @@ const getOrderProductItems = async (
 export async function webHookPayment(request, response) {
     try {
         const event = request.body
-        const endpointSecret = process.env.STRIPE_ENDPOINT_WEBHOOK_SECRET_KEY
 
         console.log("---------------- WEBHOOK EVENT ----------------")
         console.log("Type:", event.type)
 
         if (event.type === 'checkout.session.completed') {
             const session = event.data.object;
-            const metadata = session.metadata;
+            const sessionId = session.id;
+            const userId = session.metadata?.userId;
 
-            console.log("Webhook Metadata Check:", !!metadata.cartItems ? "Cart metadata found" : "Cart metadata MISSING")
+            console.log(`Payment confirmed for Session: ${sessionId}`);
 
-            const userId = metadata?.userId
-            if (!userId) {
-                console.error("No userId in metadata. Aborting.")
-                return response.status(400).send("No userId")
-            }
-
-            // Parse our bulletproof cart metadata
-            let cartItems = [];
-            if (metadata.cartItems) {
-                try {
-                    cartItems = JSON.parse(metadata.cartItems);
-                } catch (e) {
-                    console.error("Failed to parse cartItems metadata:", e.message);
+            // Find and update all pending orders linked to this session
+            const updateResult = await OrderModel.updateMany(
+                { paymentId: sessionId },
+                {
+                    payment_status: "PAID",
+                    paymentId: session.payment_intent // Update to real payment intent ID
                 }
-            }
+            );
 
-            const lineItems = await Stripe.checkout.sessions.listLineItems(session.id)
+            console.log(`Updated ${updateResult.modifiedCount} orders to PAID status.`);
 
-            const orderProduct = await getOrderProductItems({
-                lineItems: lineItems,
-                userId: userId,
-                addressId: metadata.addressId,
-                paymentId: session.payment_intent,
-                payment_status: session.payment_status,
-                cartItemsMetadata: cartItems
-            })
-
-            console.log(`Webhook prepared ${orderProduct.length} items for storage.`)
-
-            if (orderProduct.length > 0) {
-                const order = await OrderModel.insertMany(orderProduct)
-                console.log(`SUCCESS: ${order.length} orders stored for user ${userId}`)
-
-                if (order) {
-                    await UserModel.findByIdAndUpdate(userId, { shopping_cart: [] })
-                    await CartProductModel.deleteMany({ userId: userId })
-                    console.log("Cart cleared effectively.")
-                }
-            } else {
-                console.warn("No order items found to save. Check getOrderProductItems logic.")
+            if (userId) {
+                // Clear cart only after successful payment confirmation
+                await UserModel.findByIdAndUpdate(userId, { shopping_cart: [] });
+                await CartProductModel.deleteMany({ userId: userId });
+                console.log(`Cart cleared for user ${userId}`);
             }
         }
 
