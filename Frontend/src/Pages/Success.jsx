@@ -1,14 +1,18 @@
 import React, { useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
+import { handleAddItemCart } from '../Store/cartProduct'
 
 import { useGlobalContext } from '../Proveider/GlobalProvider'
 
 
 const Success = () => {
   const location = useLocation()
+  const dispatch = useDispatch()
   const { fetchCartItem, fetchOrder } = useGlobalContext()
 
   useEffect(() => {
+    dispatch(handleAddItemCart([]))
     fetchCartItem()
     fetchOrder()
   }, [])
