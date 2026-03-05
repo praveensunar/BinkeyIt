@@ -2,7 +2,8 @@ import React, { useState } from 'react'
 import { DisplayPriceInRupees } from '../utils/DisplayPriceInRupees'
 import { useGlobalContext } from '../Proveider/GlobalProvider'
 import AddAddress from '../Components/AddAddress'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { handleAddItemCart } from '../Store/cartProduct'
 import AxiosToastError from '../utils/AxiosToast'
 import Axios from '../utils/axios'
 import summaryApi from '../common/SummaryApi'
@@ -16,6 +17,7 @@ const CheckoutPage = () => {
     const addressList = useSelector(state => state.addresses.addressList)
     const [selectAddress, setSelectAddress] = useState(0)
     const cartItemList = useSelector(state => state.cartItem.cart)
+    const dispatch = useDispatch()
     const navigate = useNavigate()
 
 
@@ -38,6 +40,7 @@ const CheckoutPage = () => {
 
             if (responseData.success) {
                 toast.success(responseData.message)
+                dispatch(handleAddItemCart([]))
                 if (fetchCartItem) {
                     fetchCartItem()
                 }
