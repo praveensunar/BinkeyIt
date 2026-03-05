@@ -60,6 +60,16 @@ export async function paymentController(request, response) {
         const userId = request.userId
         const { list_items, totalAmt, addressId, subTotalAmt } = request.body
 
+        // Stripe minimum amount check (around 50 cents)
+        // For INR, 50 cents is approx ₹45. We enforce ₹50 for safety.
+        if (totalAmt < 50) {
+            return response.status(400).json({
+                message: "Minimum order amount for online payment is ₹50. Please add more items or choose Cash on Delivery.",
+                error: true,
+                success: false
+            })
+        }
+
         const line_items = list_items.map(item => {
             return {
                 price_data: {
@@ -174,12 +184,12 @@ export async function webHookPayment(request, response) {
 
             const order = await OrderModel.insertMany(orderProduct)
 
-                if(order){
-                    const removeCartItems = UserModel.findByIdAndUpdate(userId,{
-                        shoppin_cart : []
-                    })
-                    const removeCartProductDB = CartProductModel.deleteMany({_id : userId})
-                }
+            if (order) {
+                const removeCartItems = UserModel.findByIdAndUpdate(userId, {
+                    shoppin_cart: []
+                })
+                const removeCartProductDB = CartProductModel.deleteMany({ _id: userId })
+            }
             break;
         default:
             console.log(`unhandled event type ${event.type}`)
@@ -188,23 +198,23 @@ export async function webHookPayment(request, response) {
     response.json({ received: true });
 }
 
-export async function getOrderDetailsController(request , response){
-    try{
+export async function getOrderDetailsController(request, response) {
+    try {
         const userId = request.userId
 
-        const orderlist  = await OrderModel.find({ userId : userId }).sort({createdAt : -1}).populate('delivery_address')
+        const orderlist = await OrderModel.find({ userId: userId }).sort({ createdAt: -1 }).populate('delivery_address')
         return response.json({
-           message  : "order list",
-            error : false,
-            success : true,
-            data : orderlist
+            message: "order list",
+            error: false,
+            success: true,
+            data: orderlist
         })
 
-    }catch(error){
+    } catch (error) {
         return response.status(500).json({
-            message  : error.message || error,
-            error : true,
-            success : false 
+            message: error.message || error,
+            error: true,
+            success: false
         })
     }
 }
