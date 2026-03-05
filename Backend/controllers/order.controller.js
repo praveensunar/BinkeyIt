@@ -185,10 +185,10 @@ export async function webHookPayment(request, response) {
             const order = await OrderModel.insertMany(orderProduct)
 
             if (order) {
-                const removeCartItems = UserModel.findByIdAndUpdate(userId, {
-                    shoppin_cart: []
+                const removeCartItems = await UserModel.findByIdAndUpdate(userId, {
+                    shopping_cart: []
                 })
-                const removeCartProductDB = CartProductModel.deleteMany({ _id: userId })
+                const removeCartProductDB = await CartProductModel.deleteMany({ userId: userId })
             }
             break;
         default:
