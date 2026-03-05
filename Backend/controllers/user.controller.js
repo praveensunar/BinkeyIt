@@ -50,7 +50,11 @@ export async function registerUserController(request, response) {
         const save = await newUser.save()
 
         //sending  verify mail  tamplate to new register user
-        const verifyemailUrl = `${process.env.FRONTEND_URL}/verify-email?code=${save?._id}`
+        const frontendUrl = (process.env.FRONTEND_URL === "http://localhost:5173" || !process.env.FRONTEND_URL)
+            ? "https://binkeyit-clone.netlify.app"
+            : process.env.FRONTEND_URL;
+
+        const verifyemailUrl = `${frontendUrl}/verify-email?code=${save?._id}`
 
         const verifyEmail = await sendEmail({
             sendTo: email,
