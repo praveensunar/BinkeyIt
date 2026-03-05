@@ -19,19 +19,21 @@ const app = express()
 
 const allowedOrigins = [
     process.env.FRONTEND_URL,
-    'https://binkeyit-clone.netlify.app', // Update this with your actual Netlify URL
-    'http://localhost:5173'
-]
+    "https://binkeyit-clone.netlify.app",
+    "http://localhost:5173"
+].filter(Boolean); // Remote any undefined/null values
 
 app.use(cors({
     credentials: true,
     origin: (origin, callback) => {
         if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true)
+            callback(null, true);
         } else {
-            callback(new Error('Not allowed by CORS'))
+            console.log("CORS Rejected for Origin:", origin);
+            callback(new Error('Not allowed by CORS'));
         }
-    }
+    },
+    optionsSuccessStatus: 200 // Some legacy browsers crash on 204
 }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
