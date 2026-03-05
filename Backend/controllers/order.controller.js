@@ -100,15 +100,6 @@ export async function paymentController(request, response) {
             ? "https://binkeyit-clone.netlify.app"
             : process.env.FRONTEND_URL;
 
-        // NEW: Package cart details into metadata for bulletproof webhook recovery
-        const cartItemsMetadata = list_items.map(item => ({
-            productId: item.productId._id.toString(),
-            name: item.productId.name,
-            image: Object.values(item.productId.image)[0],
-            quantity: item.quntity,
-            price: priceWithDiscount(item.productId.price, item.productId.discount)
-        }));
-
         const params = {
             submit_type: 'pay',
             mode: 'payment',
@@ -117,7 +108,8 @@ export async function paymentController(request, response) {
             metadata: {
                 userId: userId.toString(),
                 addressId: addressId.toString(),
-                cartItems: JSON.stringify(cartItemsMetadata) // Store the whole cart!
+                // REMOVED cartItems: JSON.stringify(cartItemsMetadata) 
+                // We no longer need this heavy string because we use PRE-ORDERS
             },
             line_items: line_items,
             success_url: `${frontendUrl}/success`,
@@ -128,14 +120,13 @@ export async function paymentController(request, response) {
 
         if (session.id) {
             // NEW: Create PENDING orders in DB immediately
-            // This ensures the record exists before the user finishes paying
             const orderPayload = list_items.map(item => ({
                 userId: userId,
                 orderId: `ORD-${new mongoose.Types.ObjectId()}`,
                 productId: item.productId._id,
                 product_details: {
                     name: item.productId.name,
-                    image: item.productId.image?.[0]
+                    image: item.productId.image?.[0] || Object.values(item.productId.image)[0] // Robust extraction
                 },
                 paymentId: session.id, // Link to Stripe Session ID
                 payment_status: "PENDING",
